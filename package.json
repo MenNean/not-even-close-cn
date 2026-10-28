@@ -1,0 +1,18 @@
+{
+  "name": "not-even-close-cn",
+  "version": "1.1.0",
+  "private": true,
+  "type": "commonjs",
+  "description": "魔兽世界大秘境技能致死计算器 · Not Even Close 中文版",
+  "scripts": {
+    "source": "node tools/fetch-source.mjs",
+    "classes": "node tools/build-classes.mjs",
+    "zh": "node tools/fetch-zh-names.mjs",
+    "data": "node tools/build-data.mjs",
+    "build": "npm run source && npm run classes && npm run zh && npm run data",
+    "test": "node tools/test-engine.mjs && node tools/smoke-dom.mjs"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.3"
+  }
+}

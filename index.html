@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>大米致死计算器 · Not Even Close 中文版</title>
+<meta name="description" content="魔兽世界大秘境技能致死计算器：选副本、层数、角色属性，一眼看出哪个技能会秒你。">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="bg-glow" aria-hidden="true"></div>
+
+<header class="topbar">
+  <div class="brand">
+    <span class="logo" aria-hidden="true">🐋</span>
+    <div class="brand-text">
+      <h1>大米致死计算器</h1>
+      <p class="sub">Not Even Close 中文版</p>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <span class="season-badge" id="seasonBadge">赛季 —</span>
+    <span class="data-status" id="dataStatus">数据加载中</span>
+  </div>
+</header>
+
+<div class="banner" id="dataBanner" hidden></div>
+
+<main class="wrap">
+
+  <section class="panel query" aria-labelledby="queryTitle">
+    <h2 class="panel-title" id="queryTitle">角色与钥匙</h2>
+
+    <div class="grid">
+      <label class="field">
+        <span class="label">副本</span>
+        <select id="dungeon"></select>
+      </label>
+
+      <label class="field">
+        <span class="label">钥匙层数</span>
+        <div class="key-row">
+          <input type="range" id="keyInput" min="2" max="30" step="1" value="21">
+          <output class="key-value" id="keyValue">+21</output>
+        </div>
+      </label>
+
+      <label class="field">
+        <span class="label">耐力 Stamina</span>
+        <div class="hp-row">
+          <input type="number" id="staminaInput" min="1" step="1" value="45859" inputmode="numeric">
+          <span class="hp-hint" id="hpHint">91.7 万血</span>
+        </div>
+      </label>
+
+      <label class="field switch-field">
+        <span class="label">暴君周</span>
+        <label class="switch">
+          <input type="checkbox" id="tyranToggle">
+          <span class="track"><span class="knob"></span></span>
+          <span class="switch-text">首领伤害 ×1.15</span>
+        </label>
+      </label>
+    </div>
+
+    <details class="advanced" id="advanced">
+      <summary>高级：全能 / 闪避 / 护甲 / 自定义减伤</summary>
+      <div class="adv-body">
+        <div class="grid adv-grid">
+          <label class="field">
+            <span class="label">全能（原始点数）</span>
+            <div class="unit-input">
+              <input type="number" id="versInput" min="0" step="10" value="0">
+              <span class="unit" id="versPct">0%</span>
+            </div>
+          </label>
+          <label class="field">
+            <span class="label">闪避（原始点数）</span>
+            <div class="unit-input">
+              <input type="number" id="avoidInput" min="0" step="10" value="0">
+              <span class="unit" id="avoidPct">0%</span>
+            </div>
+          </label>
+          <label class="field">
+            <span class="label">护甲</span>
+            <div class="unit-input">
+              <input type="number" id="armorInput" min="0" step="10" value="2409">
+              <span class="unit" id="armorPct">35%</span>
+            </div>
+          </label>
+        </div>
+
+        <h3 class="sub-title">自定义减伤（乘法叠加，可填职业被动/饰品）</h3>
+        <div class="buff-list" id="buffList"></div>
+        <div class="buff-add">
+          <input type="text" id="buffName" placeholder="名称，如 老兵 5%" maxlength="20">
+          <div class="unit-input small">
+            <input type="number" id="buffPct" min="0" max="100" step="1" value="5">
+            <span class="unit">%</span>
+          </div>
+          <select id="buffType" aria-label="减伤类型">
+            <option value="all">通用</option>
+            <option value="physical">仅物理</option>
+            <option value="magic">仅魔法</option>
+          </select>
+          <button type="button" class="btn ghost" id="addBuff">添加</button>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <section class="panel classpanel" aria-labelledby="classTitle">
+    <h2 class="panel-title" id="classTitle">职业与团队减伤</h2>
+
+    <div class="grid">
+      <label class="field">
+        <span class="label">职业</span>
+        <select id="classSelect"></select>
+      </label>
+      <label class="field">
+        <span class="label">专精</span>
+        <select id="specSelect"></select>
+      </label>
+      <div class="field">
+        <span class="label">已选减伤</span>
+        <div class="derived" id="drSummary">—</div>
+      </div>
+    </div>
+
+    <div class="ab-scroll">
+      <h3 class="sub-title">自身减伤 / 增益</h3>
+      <div class="ab-grid" id="specAbilities"></div>
+    </div>
+
+    <details class="advanced" id="groupPanel">
+      <summary>团队减伤 / 增益 / 外部技能</summary>
+      <div class="ab-scroll">
+        <div class="ab-grid" id="groupAbilities"></div>
+      </div>
+    </details>
+  </section>
+
+  <section class="results" aria-labelledby="resultTitle">
+    <div class="results-head">
+      <h2 class="panel-title" id="resultTitle">承伤判定</h2>
+      <div class="summary" id="summary">
+        <span class="pill lethal">必死 <b id="sumLethal">0</b></span>
+        <span class="pill danger">危险 <b id="sumDanger">0</b></span>
+        <span class="pill safe">安全 <b id="sumSafe">0</b></span>
+      </div>
+    </div>
+
+    <div class="toolbar">
+      <input type="search" id="searchInput" placeholder="搜技能名…" aria-label="搜索">
+      <select id="sortSelect" aria-label="排序">
+        <option value="pct-desc">按承伤占比 ↓</option>
+        <option value="pct-asc">按承伤占比 ↑</option>
+        <option value="dmg-desc">按伤害 ↓</option>
+        <option value="name">按技能名</option>
+      </select>
+      <div class="chips" id="schoolFilter" role="group" aria-label="按伤害类型筛选"></div>
+      <label class="toggle-inline">
+        <input type="checkbox" id="excludeTank">
+        排除坦克技能
+      </label>
+      <button type="button" class="btn" id="shareBtn">复制分享链接</button>
+    </div>
+
+    <div class="table" id="table">
+      <div class="table-head" role="row">
+        <span>技能</span>
+        <span>标签</span>
+        <span class="num">该层伤害</span>
+        <span>占血量</span>
+        <span class="right">判定</span>
+      </div>
+      <div class="rows" id="rows"></div>
+      <p class="empty" id="empty" hidden></p>
+    </div>
+    <p class="foot-note" id="footNote"></p>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <p>
+    数据来自 <a href="https://not-even-close.com/" target="_blank" rel="noopener">not-even-close.com</a>
+    的开源仓库 · 本站为玩家自制中文工具，非官方，非商用。
+  </p>
+  <p class="dim">技能中文名为人工翻译，标注 ⚠️ 的条目待校对；数值以游戏内实测为准。</p>
+</footer>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="data/data.js"></script>
+<script src="data/classes.js"></script>
+<script src="data/zh-names.js"></script>
+<script src="assets/engine.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>

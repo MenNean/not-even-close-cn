@@ -1,0 +1,12 @@
+# 构建产物 / 依赖
+node_modules/
+.npm-cache/
+package-lock.json
+
+# 原站源码镜像（体积大，且是第三方代码，不进仓库）
+# 需要时跑 npm run source 重新下载
+data/source/
+
+# 临时文件
+.tmp/
+*.log
